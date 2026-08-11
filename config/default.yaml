@@ -2,19 +2,68 @@
 
 llm:
   provider: anthropic
-  model: claude-sonnet-4-20250514
-  max_tokens: 1024
+  model: claude-sonnet-5
+  max_tokens: 2048
+  max_tool_rounds: 8
 
 max_history_turns: 20
 
+# On Linux, data_dir is ignored unless JARVIS_DATA_DIR is set —
+# runtime data lives in $XDG_DATA_HOME/jarvis (default ~/.local/share/jarvis).
 data_dir: data
-db_path: data/jarvis.db
-audit_log_path: data/audit.jsonl
-sandbox_root: data/sandbox
+db_path: jarvis.db
+audit_log_path: audit.jsonl
+sandbox_root: "{data}/sandbox"
 
 permissions:
   max_autonomous_level: 2  # LOW_RISK
+  confirm_timeout_seconds: 30
 
 voice:
-  tts_provider: edge-tts  # Phase 1
+  tts_provider: edge-tts
+  tts_voice: en-GB-RyanNeural
   wake_word: jarvis
+  stt_model: base
+  session_silence_seconds: 8
+  acknowledgment: "Yes, sir?"
+
+location:
+  name: Columbus, Ohio
+  latitude: 39.9612
+  longitude: -82.9988
+
+allow_read_paths:
+  - "{sandbox}"
+  - "{repo}"
+  - "{home}/Projects"
+  - "{home}/Documents"
+
+allow_write_paths:
+  - "{sandbox}"
+  - "{repo}"
+
+projects:
+  jarvis:
+    path: "{repo}"
+    stack: "Python 3.12, Anthropic Claude"
+    notes: "Personal AI operating layer"
+
+shell:
+  timeout_seconds: 30
+  allowlisted_commands:
+    whoami: ["whoami"]
+    hostname: ["hostname"]
+    date: ["date"]
+    python_version: ["{python}", "--version"]
+    git_version: ["git", "--version"]
+    disk: ["df", "-h"]
+
+autonomy:
+  quiet_hours_start: 22
+  quiet_hours_end: 7
+  max_proactive_per_hour: 4
+  importance_threshold: 0.6
+
+server:
+  host: 127.0.0.1
+  port: 8787

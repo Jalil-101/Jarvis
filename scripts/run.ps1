@@ -1,4 +1,4 @@
-# Run Jarvis text chat
+# Run Jarvis (forwards all args)
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
 

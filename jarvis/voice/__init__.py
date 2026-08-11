@@ -1,1 +1,5 @@
-"""Voice: wake word, STT, TTS (Phase 1)."""
+"""Voice: wake word, STT, TTS."""
+
+from jarvis.voice.tts import speak
+
+__all__ = ["speak"]

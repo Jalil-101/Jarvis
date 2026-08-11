@@ -18,6 +18,7 @@ venv/
 
 # Jarvis runtime data
 data/
+sandbox/
 *.db
 *.sqlite
 *.sqlite3

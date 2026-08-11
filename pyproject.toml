@@ -4,14 +4,30 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jarvis"
-version = "0.1.0"
-description = "Personal AI operating layer — Phase 0 foundation"
+version = "0.2.0"
+description = "Personal AI operating layer — voice, memory, permissioned tools"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
   "anthropic>=0.40.0",
   "python-dotenv>=1.0.0",
   "PyYAML>=6.0.1",
+  "httpx>=0.27.0",
+  "edge-tts>=6.1.0",
+]
+
+[project.optional-dependencies]
+voice = [
+  "sounddevice>=0.5.0",
+  "numpy>=1.26.0",
+  "faster-whisper>=1.0.0",
+  "openwakeword>=0.6.0",
+]
+desktop = [
+  "mss>=9.0.0",
+  "Pillow>=10.0.0",
+  "pypdf>=4.0.0",
+  "pyperclip>=1.8.2",
 ]
 
 [project.scripts]

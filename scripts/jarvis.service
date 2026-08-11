@@ -1,0 +1,17 @@
+[Unit]
+Description=Jarvis personal AI operating layer
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=@REPO@
+Environment=JARVIS_DATA_DIR=@DATA@
+EnvironmentFile=-@REPO@/.env
+ExecStart=@REPO@/.venv/bin/python -m jarvis listen
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+
+[Install]
+WantedBy=default.target

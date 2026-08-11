@@ -1,0 +1,16 @@
+[Unit]
+Description=Jarvis autonomy engine (proactive watchers)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=@REPO@
+Environment=JARVIS_DATA_DIR=@DATA@
+EnvironmentFile=-@REPO@/.env
+ExecStart=@REPO@/.venv/bin/python -m jarvis autonomy
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
