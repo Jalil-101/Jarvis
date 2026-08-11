@@ -1,0 +1,20 @@
+# Jarvis defaults (no secrets — put those in .env)
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  max_tokens: 1024
+
+max_history_turns: 20
+
+data_dir: data
+db_path: data/jarvis.db
+audit_log_path: data/audit.jsonl
+sandbox_root: data/sandbox
+
+permissions:
+  max_autonomous_level: 2  # LOW_RISK
+
+voice:
+  tts_provider: edge-tts  # Phase 1
+  wake_word: jarvis
