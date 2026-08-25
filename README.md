@@ -32,11 +32,36 @@ Text only (no TTS):
 .\scripts\run.cmd --no-speak --once "Good evening."
 ```
 
-British TTS smoke test (no API key needed):
+British TTS smoke test (edge-tts; no API key needed):
 
 ```powershell
 .\scripts\run.cmd speak "Yes, sir?"
 ```
+
+Premium British voice (ElevenLabs — Week 1 path from the plan):
+
+1. Create an API key at [elevenlabs.io](https://elevenlabs.io) and pick a British voice; copy its Voice ID.
+2. Put them in `.env` (never commit):
+
+```
+ELEVENLABS_API_KEY=...
+ELEVENLABS_VOICE_ID=...
+```
+
+3. Smoke test:
+
+```powershell
+.\scripts\run.cmd speak "Yes, sir?"
+```
+
+Always-on listen (Week 2 — leave the terminal open):
+
+```powershell
+.\scripts\install-voice.cmd
+.\scripts\run.cmd listen
+```
+
+Say **Jarvis** (or press Enter if wake/mic is not ready yet). He acknowledges, listens, replies by voice, then goes back to waiting.
 
 Day-30 demo (wake acknowledgement, memory, sandbox folder, weather):
 
@@ -44,16 +69,16 @@ Day-30 demo (wake acknowledgement, memory, sandbox folder, weather):
 .\scripts\run.cmd demo
 ```
 
-Push-to-talk (needs `.\.venv\Scripts\pip.exe install -e ".[voice]"` for mic/STT):
+Safe hands smoke (no LLM — folder, allowlisted cmds, weather, audit):
+
+```powershell
+.\scripts\run.cmd hands
+```
+
+Push-to-talk (needs `.\scripts\install-voice.cmd` for mic/STT):
 
 ```powershell
 .\scripts\run.cmd voice
-```
-
-Always-on wake loop (Linux body uses this under systemd):
-
-```powershell
-.\scripts\run.cmd listen
 ```
 
 **Do not** type `jarvis` or `python` in PowerShell. `jarvis` is not a shell command; `python` opens the Store stub. If you want the raw interpreter:
@@ -73,6 +98,7 @@ Windows: prefix with `.\scripts\run.cmd`. Linux / activated venv: `python -m jar
 | `.\scripts\run.cmd voice` | Push-to-talk |
 | `.\scripts\run.cmd listen` | Wake word → session |
 | `.\scripts\run.cmd demo` | Day-30 acceptance script |
+| `.\scripts\run.cmd hands` | Safe hands smoke (folder, whoami, weather, audit) |
 | `.\scripts\run.cmd autonomy` | Proactive engine (battery, disk, jobs) |
 | `.\scripts\run.cmd serve` | Localhost HTTP API (`/health`, `POST /v1/chat`) |
 

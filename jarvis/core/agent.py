@@ -29,6 +29,7 @@ class Agent:
         memory: MemoryStore | None = None,
         permissions: PermissionGate | None = None,
         confirm_fn: ConfirmFn | None = None,
+        voice_mode: bool = False,
     ) -> None:
         self.settings = get_settings()
         env_path = repo_root() / ".env"
@@ -56,6 +57,7 @@ class Agent:
             self.permissions.confirm_fn = confirm_fn
         self.session_id = session_id or str(uuid.uuid4())
         self.system_prompt = load_system_prompt()
+        self.voice_mode = voice_mode
         self.registry: ToolRegistry = build_registry(self.settings, self.memory, self.permissions)
         self._history: list[dict[str, Any]] = _text_only(
             self.memory.load_messages(self.session_id, limit=self.settings.max_history_turns)
@@ -83,11 +85,17 @@ class Agent:
         system = self._compose_system(user_text)
 
         assistant_text = ""
-        for _ in range(self.settings.max_tool_rounds):
+        max_tokens = (
+            self.settings.voice_max_tokens if self.voice_mode else self.settings.max_tokens
+        )
+        max_rounds = (
+            self.settings.voice_max_tool_rounds if self.voice_mode else self.settings.max_tool_rounds
+        )
+        for _ in range(max_rounds):
             try:
                 response = self.client.messages.create(
                     model=self.settings.model,
-                    max_tokens=self.settings.max_tokens,
+                    max_tokens=max_tokens,
                     system=system,
                     tools=tools,
                     messages=messages,
@@ -139,6 +147,14 @@ class Agent:
 
     def _compose_system(self, user_text: str) -> str:
         parts = [self.system_prompt]
+        if self.voice_mode:
+            parts.append(
+                "## Voice mode\n"
+                "The user is speaking aloud. Reply in 1–2 short spoken sentences. "
+                "No markdown, lists, or URLs. Lead with the answer. "
+                "If the transcript looks garbled, infer the likely intent and answer briefly; "
+                "ask one clarifying question only if you truly cannot."
+            )
         recalled = self.memory.recall(user_text, limit=8)
         if recalled:
             parts.append("## Recalled personal knowledge\n" + recalled)
@@ -155,14 +171,41 @@ class Agent:
         return "\n\n".join(parts)
 
     def _maybe_extract(self, user_text: str) -> None:
-        remember = re.search(r"remember (?:that |this[:\s]+)(.+)", user_text, re.I)
+        # Voice transcripts are messy — accept several remember phrasings.
+        remember = re.search(
+            r"(?:please\s+)?remember(?:\s+that|\s+this)?[:\s]+(.+)",
+            user_text,
+            re.I,
+        )
         if remember:
-            self.memory.add_semantic(remember.group(1).strip(), session_id=self.session_id)
-        person = re.search(r"my (\w+) is ([A-Z][a-zA-Z\-']+)", user_text)
+            fact = remember.group(1).strip(" .,!")
+            if len(fact) >= 3:
+                self.memory.add_semantic(fact, session_id=self.session_id)
+        # "my favorite drink is tea" / "my advisor is Sarah"
+        person = re.search(
+            r"\bmy\s+(\w+)\s+is\s+([A-Z][a-zA-Z\-']+)\b",
+            user_text,
+        )
         if person:
             relation, name = person.group(1), person.group(2)
             self.memory.upsert_person(name, relation=relation, notes=user_text)
-            self.memory.add_semantic(f"The user's {relation} is {name}.", session_id=self.session_id)
+            self.memory.add_semantic(
+                f"The user's {relation} is {name}.",
+                session_id=self.session_id,
+            )
+        pref = re.search(
+            r"\bmy\s+favorite\s+(\w+)\s+is\s+(.+?)(?:[.!]|$)",
+            user_text,
+            re.I,
+        )
+        if pref:
+            key, value = pref.group(1).lower(), pref.group(2).strip(" .,!")
+            if key and value:
+                self.memory.set_preference(f"favorite.{key}", value)
+                self.memory.add_semantic(
+                    f"The user's favorite {key} is {value}.",
+                    session_id=self.session_id,
+                )
 
 
 def _text_only(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:

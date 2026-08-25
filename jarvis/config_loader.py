@@ -57,6 +57,8 @@ class Settings:
     server_host: str
     server_port: int
     api_token: str = ""
+    voice_max_tokens: int = 256
+    voice_max_tool_rounds: int = 4
     extra: dict[str, Any] = field(default_factory=dict)
 
 
@@ -177,6 +179,18 @@ def get_settings() -> Settings:
                 else str(a).replace("{python}", sys.executable)
                 for a in argv
             ]
+    # Platform-safe extras (Week 3 hands) — keep Linux body working later.
+    if sys.platform.startswith("win"):
+        allowlisted.setdefault("date", ["cmd", "/c", "echo %DATE% %TIME%"])
+        allowlisted.setdefault(
+            "disk",
+            ["cmd", "/c", "wmic logicaldisk get size,freespace,caption"],
+        )
+        allowlisted.setdefault("dir", ["cmd", "/c", "dir"])
+    else:
+        allowlisted.setdefault("date", ["date"])
+        allowlisted.setdefault("disk", ["df", "-h"])
+        allowlisted.setdefault("dir", ["ls", "-la"])
 
     return Settings(
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", "").strip(),
@@ -188,10 +202,13 @@ def get_settings() -> Settings:
         audit_log_path=audit_log_path,
         data_dir=data_dir,
         sandbox_root=sandbox,
-        tts_provider=str(voice.get("tts_provider", "edge-tts")),
+        tts_provider=os.getenv(
+            "JARVIS_TTS_PROVIDER",
+            str(voice.get("tts_provider", "auto")),
+        ),
         tts_voice=os.getenv("JARVIS_TTS_VOICE", voice.get("tts_voice", "en-GB-RyanNeural")),
         wake_word=str(voice.get("wake_word", "jarvis")),
-        stt_model=str(voice.get("stt_model", "base")),
+        stt_model=os.getenv("JARVIS_STT_MODEL", voice.get("stt_model", "tiny.en")),
         session_silence_seconds=float(voice.get("session_silence_seconds", 8)),
         acknowledgment=str(voice.get("acknowledgment", "Yes, sir?")),
         max_autonomous_level=int(perms.get("max_autonomous_level", 2)),
@@ -211,4 +228,6 @@ def get_settings() -> Settings:
         server_host=str(server.get("host", "127.0.0.1")),
         server_port=int(os.getenv("JARVIS_PORT", server.get("port", 8787))),
         api_token=os.getenv("JARVIS_API_TOKEN", "").strip(),
+        voice_max_tokens=int(os.getenv("JARVIS_VOICE_MAX_TOKENS", voice.get("max_tokens", 256))),
+        voice_max_tool_rounds=int(voice.get("max_tool_rounds", 4)),
     )

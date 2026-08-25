@@ -17,6 +17,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(ctx.exception.code, 0)
         self.assertIn("listen", buf.getvalue())
         self.assertIn("demo", buf.getvalue())
+        self.assertIn("hands", buf.getvalue())
 
 
 if __name__ == "__main__":

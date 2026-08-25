@@ -30,7 +30,9 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("voice", help="Push-to-talk voice loop.")
     sub.add_parser("listen", help="Always-on wake-word loop (Linux body).")
     sub.add_parser("demo", help="Day-30 demo: greet, recall, folder, weather.")
+    sub.add_parser("hands", help="Safe hands smoke test (sandbox tools, no LLM).")
     sub.add_parser("autonomy", help="Run the proactive engine (watchers + jobs).")
+    sub.add_parser("mic-test", help="Live microphone level meter (Windows troubleshooting).")
 
     speak_p = sub.add_parser("speak", help="Speak text with the British TTS voice.")
     speak_p.add_argument("text", nargs="+", help="Words to speak.")
@@ -73,6 +75,10 @@ def main(argv: list[str] | None = None) -> int:
 
         day30_demo()
         return 0
+    if cmd == "hands":
+        from jarvis.voice.loop import hands_smoke
+
+        return hands_smoke()
     if cmd == "autonomy":
         from jarvis.autonomy.engine import AutonomyEngine
 
@@ -83,6 +89,10 @@ def main(argv: list[str] | None = None) -> int:
 
         speak(" ".join(args.text))
         return 0
+    if cmd == "mic-test":
+        from jarvis.voice.mic import mic_test
+
+        return mic_test()
     if cmd == "serve":
         from jarvis.server.app import serve
 

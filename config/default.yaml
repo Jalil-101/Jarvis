@@ -20,12 +20,18 @@ permissions:
   confirm_timeout_seconds: 30
 
 voice:
-  tts_provider: edge-tts
+  # elevenlabs when ELEVENLABS_API_KEY is set; otherwise edge-tts.
+  # Force free TTS with: tts_provider: edge-tts
+  tts_provider: auto
   tts_voice: en-GB-RyanNeural
   wake_word: jarvis
-  stt_model: base
+  # tiny.en = fast CPU STT. For accuracy (slower): base / small.en via JARVIS_STT_MODEL
+  stt_model: tiny.en
   session_silence_seconds: 8
   acknowledgment: "Yes, sir?"
+  # Shorter Claude replies when speaking (voice loops)
+  max_tokens: 256
+  max_tool_rounds: 4
 
 location:
   name: Columbus, Ohio
@@ -50,13 +56,12 @@ projects:
 
 shell:
   timeout_seconds: 30
+  # Core allowlist — platform overlays applied in config_loader for date/disk.
   allowlisted_commands:
     whoami: ["whoami"]
     hostname: ["hostname"]
-    date: ["date"]
     python_version: ["{python}", "--version"]
     git_version: ["git", "--version"]
-    disk: ["df", "-h"]
 
 autonomy:
   quiet_hours_start: 22
